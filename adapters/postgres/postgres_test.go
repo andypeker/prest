@@ -186,6 +186,41 @@ func TestInvalidWhereByRequest(t *testing.T) {
 	}
 }
 
+func TestGroupByClause(t *testing.T) {
+	var testCases = []struct {
+		description string
+		url         string
+		expectedSQL string
+		emptyCase   bool
+	}{
+		{"Group by clause with one field", "/prest/public/test5?_groupby=celphone", "GROUP BY celphone", false},
+		{"Group by clause with two fields", "/prest/public/test5?_groupby=celphone,name", "GROUP BY celphone,name", false},
+		{"Group by clause without fields", "/prest/public/test5?_groupby=", "", true},
+	}
+
+	for _, tc := range testCases {
+		t.Log(tc.description)
+		req, err := http.NewRequest("GET", tc.url, nil)
+		if err != nil {
+			t.Errorf("expected no errors in http request, got %v", err)
+		}
+
+		groupBySQL := GroupByClause(req)
+
+		if !tc.emptyCase && groupBySQL == "" {
+			t.Error("expected groupBySQL, got empty string")
+		}
+
+		if tc.emptyCase && groupBySQL != "" {
+			t.Errorf("expected empty, got %v", groupBySQL)
+		}
+
+		if groupBySQL != tc.expectedSQL {
+			t.Errorf("expected %s, got %s", tc.expectedSQL, groupBySQL)
+		}
+	}
+}
+
 func TestEmptyTable(t *testing.T) {
 	response, err := Query("SELECT * FROM test_empty_table")
 	if err != nil {

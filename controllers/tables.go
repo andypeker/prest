@@ -165,6 +165,14 @@ func SelectFromTables(w http.ResponseWriter, r *http.Request) {
 			requestWhere)
 	}
 
+	// TODO: Add group by support
+
+	groupBySQL := postgres.GroupByClause(r)
+
+	if groupBySQL != "" {
+		sqlSelect = fmt.Sprintf("%s %s", sqlSelect, groupBySQL)
+	}
+
 	order, err := postgres.OrderByRequest(r)
 	if err != nil {
 		err = fmt.Errorf("could not perform OrderByRequest: %v", err)
